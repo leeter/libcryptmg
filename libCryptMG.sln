@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libCryptMG", "libCryptMG\libCryptMG.vcxproj", "{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crypto_tests", "crypto_tests\crypto_tests.vcxproj", "{9EEB9524-DADC-464F-A785-9A5ECD038794}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug tests|Mixed Platforms = debug tests|Mixed Platforms
+		debug tests|Win32 = debug tests|Win32
+		debug tests|x64 = debug tests|x64
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|Mixed Platforms.ActiveCfg = debug tests|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|Mixed Platforms.Build.0 = debug tests|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|Win32.ActiveCfg = debug tests|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|Win32.Build.0 = debug tests|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|x64.ActiveCfg = debug tests|x64
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.debug tests|x64.Build.0 = debug tests|x64
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|Win32.Build.0 = Debug|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|x64.ActiveCfg = Debug|x64
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Debug|x64.Build.0 = Debug|x64
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|Win32.ActiveCfg = Release|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|Win32.Build.0 = Release|Win32
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|x64.ActiveCfg = Release|x64
+		{0E8BFBF6-8537-4F6D-AA9F-69C9E83119B9}.Release|x64.Build.0 = Release|x64
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|Mixed Platforms.ActiveCfg = debug tests|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|Mixed Platforms.Build.0 = debug tests|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|Win32.ActiveCfg = debug tests|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|Win32.Build.0 = debug tests|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|x64.ActiveCfg = debug tests|x64
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.debug tests|x64.Build.0 = debug tests|x64
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Debug|Win32.Build.0 = Debug|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Debug|x64.ActiveCfg = Debug|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Release|Win32.ActiveCfg = Release|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Release|Win32.Build.0 = Release|Win32
+		{9EEB9524-DADC-464F-A785-9A5ECD038794}.Release|x64.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
