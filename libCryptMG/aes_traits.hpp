@@ -10,7 +10,7 @@ namespace libcryptmg
 {
 	namespace crypto
 	{
-		class aes;
+		struct aes;
 
 		namespace traits
 		{
@@ -18,7 +18,7 @@ namespace libcryptmg
 			struct is_block_cipher<aes> : std::true_type{};
 
 			template<>
-			struct block_size<aes> : std::integral_constant<::std::size_t, 128>{};
+			struct block_size<aes> : ::std::integral_constant<::std::size_t, 128>{};
 
 			template<>
 			struct is_valid_key_length<aes, 128> : ::std::true_type{};

@@ -2,6 +2,7 @@
 #include <array>
 #include <algorithm>
 #include <stdexcept>
+#include <iterator>
 #include <vector>
 #include <cstdlib>
 #include <utility>
@@ -11,12 +12,14 @@
 #include "crypto_allocator.hpp"
 #include "crypto_vector.hpp"
 #include "aes_traits.hpp"
+#include "bitwise_opps.hpp"
 
 
 using namespace libcryptmg::crypto;
-using namespace libcryptmg::core;
+namespace core = libcryptmg::core;
+namespace traits = libcryptmg::crypto::traits;
 
-template class ::libcryptmg::crypto::running_modes::cipher_block_chaining < aes >;
+template class ::libcryptmg::crypto::running_modes::cipher_block_chaining < ::libcryptmg::crypto::aes >;
 
 #ifndef RUN_TESTS
 namespace{
@@ -615,64 +618,153 @@ namespace{
 		return sbox[in];
 	}
 
-	static ::std::uint8_t op_xor(::std::uint8_t a, ::std::uint8_t b)
+	static const int AES128_NUM_KEYWORDS = 4;
+	static const int AES192_NUM_KEYWORDS = 6;
+	static const int AES256_NUM_KEYWORDS = 8;
+
+	/*cipher_key* generate_aes_key(const ::std::uint8_t* key, ::std::size_t len)
 	{
-		return a ^ b;
+		if (!key)
+		{
+			throw ::std::invalid_argument("invalid key pointer");
+		}
+		if (len == 0 || (len != 16 && len != 24 && len != 32))
+		{
+			throw ::std::invalid_argument("Invalid key length");
+		}
+
+		// expand the key
+		const int wordSize = sizeof(::std::uint32_t);
+		const int number_of_words_in_key = static_cast<int>(len) / sizeof(::std::uint32_t);
+		const int number_of_rounds = number_of_words_in_key + 6;
+		const int block_size = 4;
+		const int expanded_key_words = block_size * (number_of_rounds + 1);
+		const int key_temp_size = expanded_key_words * wordSize;
+
+
+
+		crypto_vector keyTemp(key_temp_size);
+		::std::copy(key, key + len, keyTemp.begin());
+		crypto_vector::iterator temp_iter = keyTemp.begin() + ((number_of_words_in_key - 1) * wordSize);
+		::std::array<::std::uint8_t, wordSize> temp;
+		::std::copy(temp_iter, temp_iter + wordSize, temp.begin());
+
+		for (int i = number_of_words_in_key; i < expanded_key_words; ++i)
+		{
+			temp_iter += wordSize;
+			if ((i % number_of_words_in_key) == 0)
+			{
+				::std::rotate(temp.begin(), temp.begin() + 1, temp.end());
+				::std::transform(temp.cbegin(), temp.cend(), temp.begin(), sub_words);
+				temp[0] ^= rcon[(i / number_of_words_in_key) - 1];
+			}
+			else if (number_of_words_in_key > AES192_NUM_KEYWORDS && (i % number_of_words_in_key) == AES128_NUM_KEYWORDS)
+			{
+				::std::transform(temp.cbegin(), temp.cend(), temp.begin(), sub_words);
+			}
+
+			::std::transform(
+				temp.cbegin(),
+				temp.cend(),
+				temp_iter - (number_of_words_in_key * wordSize),
+				temp.begin(),
+				op_xor);
+			::std::copy(temp.cbegin(), temp.cend(), temp_iter);
+		}
+
+		crypto_allocator<aes_key> alloc;
+		aes_key * ptr = alloc.allocate(1);
+		alloc.construct(ptr, keyTemp.data(), keyTemp.size());
+		::libcryptmg::core::explict_zero(temp);
+		std::fill(temp.begin(), temp.end(), 0);
+		return ptr;
+	}*/
+	template<unsigned int column>
+	inline ::std::uint32_t byte_from_word(::std::uint32_t word)
+	{
+		const ::std::uint32_t mask = 0x000000FFU << (column * 8);
+		return word & mask;
 	}
 
-    struct aes_key : public ::libcryptmg::core::cipher_key
-    {
-        const ::std::vector<::std::uint8_t, ::libcryptmg::core::crypto_allocator<::std::uint8_t> > _key_vec;
-        const int _rounds;
-
-        aes_key(const ::std::uint8_t * key, ::std::size_t len)
-            :_key_vec(key, key + len), _rounds(static_cast<int>(len) / sizeof(::std::uint32_t) + 6)
-        {
-
-        }
-
-        cipher_key::size_type size() const NOTHROW override final
-        {
-            return _key_vec.size();
-        }
-
-        const ::std::uint8_t* get_keyval() const
-        {
-            return _key_vec.data();
-        }
-    };
-
-    static const int AES128_NUM_KEYWORDS = 4;
-    static const int AES192_NUM_KEYWORDS = 6;
-    static const int AES256_NUM_KEYWORDS = 8;
+    
 #ifndef RUN_TESTS
 }
 #endif
 
-::libcryptmg::crypto::aes::aes(::libcryptmg::core::crypto_vector && key)
-	:key(::std::move(key))
+aes_encryptor::aes_encryptor(aes_encryptor::crypto_store&& key, int num_rounds)
+	:block_keys(::std::move(key)), number_of_rounds(num_rounds)
 {
+
 }
 
-::libcryptmg::crypto::aes::aes(::libcryptmg::crypto::aes&& other)
-	: key(::std::move(other.key))
+void aes_encryptor::operator()(const_crypto_iter begin, crypto_iter out)
 {
-}
-
-aes aes::initialize_aes(const ::std::uint8_t * key, ::std::size_t len)
-{
-	if (!key)
+	union aes_state {
+		::std::array<::std::uint32_t, 4> words;
+		::std::array<::std::uint8_t, 16> bytes;
+	};
+	aes_state state = { 0 }, round_key;
+	const_crypto_iter block_key = this->block_keys.cbegin(), data = begin;
+	::std::copy(block_key, block_key + round_key.bytes.size(), round_key.bytes.begin());
+	::std::copy(data, data + state.bytes.size(), state.bytes.begin());
+	::std::transform(
+		state.words.cbegin(),
+		state.words.cend(),
+		round_key.words.cbegin(),
+		state.words.begin(),
+		::core::op_xor < ::std::uint32_t>);
+	block_key += ::traits::bytes_per_block<aes>::value;
+	for (int rounds = 0; rounds < number_of_rounds; ++rounds)
 	{
-		throw ::std::invalid_argument("invalid key pointer");
+		::std::uint32_t c0, c1, c2, c3;
+		c0 =
+			Te0[state.bytes[0]] ^
+			Te1[state.bytes[5]] ^
+			Te2[state.bytes[10]] ^
+			Te3[state.bytes[15]];
+		c1 =
+			Te0[state.bytes[4]] ^
+			Te1[state.bytes[9]] ^
+			Te2[state.bytes[14]] ^
+			Te3[state.bytes[3]];
+		c2 =
+			Te0[state.bytes[8]] ^
+			Te1[state.bytes[13]] ^
+			Te2[state.bytes[2]] ^
+			Te3[state.bytes[7]];
+		c3 =
+			Te0[state.bytes[12]] ^
+			Te1[state.bytes[1]] ^
+			Te2[state.bytes[6]] ^
+			Te3[state.bytes[11]];
+		::std::copy(block_key, block_key + round_key.bytes.size(), round_key.bytes.begin());
+		state.words[0] = c0 ^ round_key.words[0];
+		state.words[1] = c1 ^ round_key.words[1];
+		state.words[2] = c2 ^ round_key.words[2];
+		state.words[3] = c3 ^ round_key.words[3];
+		block_key += ::traits::bytes_per_block<aes>::value;
 	}
-	if (len == 0 || (len != 16 && len != 24 && len != 32))
+
+	::std::copy(block_key, block_key + round_key.bytes.size(), round_key.bytes.begin());
+
+	state.words[0] = 
+		 byte_from_word<0>(Te0[state.bytes[0]]) |
+		 byte_from_word<1>(Te1[state.bytes[5]]) |
+		 byte_from_word<2>(Te2[state.bytes[10]]) |
+		 byte_from_word<3>(Te3[state.bytes[15]]) ^ round_key.words[0];
+	::std::copy(state.bytes.cbegin(), state.bytes.cend(), out);
+}
+
+aes_encryptor aes::create_encryptor(const aes::key_store & key)
+{
+	if (key.size() == 0 || key.size() <= 16)
 	{
 		throw ::std::invalid_argument("Invalid key length");
 	}
 
 	// expand the key
 	const int wordSize = sizeof(::std::uint32_t);
-	const int number_of_words_in_key = static_cast<int>(len) / sizeof(::std::uint32_t);
+	const int number_of_words_in_key = static_cast<int>(key.size()) / sizeof(::std::uint32_t);
 	const int number_of_rounds = number_of_words_in_key + 6;
 	const int block_size = 4;
 	const int expanded_key_words = block_size * (number_of_rounds + 1);
@@ -680,9 +772,9 @@ aes aes::initialize_aes(const ::std::uint8_t * key, ::std::size_t len)
 
 
 
-	crypto_vector keyTemp(key_temp_size);
-	::std::copy(key, key + len, keyTemp.begin());
-	crypto_vector::iterator temp_iter = keyTemp.begin() + ((number_of_words_in_key - 1) * wordSize);
+	core::crypto_vector keyTemp(key_temp_size);
+	::std::copy(key.cbegin(), key.cend(), keyTemp.begin());
+	core::crypto_vector::iterator temp_iter = keyTemp.begin() + ((number_of_words_in_key - 1) * wordSize);
 	::std::array<::std::uint8_t, wordSize> temp;
 	::std::copy(temp_iter, temp_iter + wordSize, temp.begin());
 
@@ -705,83 +797,12 @@ aes aes::initialize_aes(const ::std::uint8_t * key, ::std::size_t len)
 			temp.cend(),
 			temp_iter - (number_of_words_in_key * wordSize),
 			temp.begin(),
-			op_xor);
+			::core::op_xor<::std::uint8_t>);
 		::std::copy(temp.cbegin(), temp.cend(), temp_iter);
 	}
 
 	std::fill(temp.begin(), temp.end(), 0);
-	return aes(::std::move(keyTemp));
-}
-
-::std::error_code aes::operator()(const ::std::uint8_t * RESTRICT in, ::std::uint8_t * RESTRICT out, ::std::size_t len)
-{
-    if (!in || !out || !len)
-    {
-        return ::std::make_error_code(::std::errc::invalid_argument);
-    }
-    
-	//::std::array<::std::uint8_t, 64> state;
-
-	//::std::transform(in, in + 64, key.)
-    return std::error_code();
-}
-
-::libcryptmg::core::cipher_key* ::libcryptmg::crypto::generate_aes_key(const ::std::uint8_t* key, ::std::size_t len)
-{
-    if (!key)
-    {
-        throw ::std::invalid_argument("invalid key pointer");
-    }
-    if (len == 0 || (len != 16 && len != 24 && len != 32))
-    {
-        throw ::std::invalid_argument("Invalid key length");
-    }
-
-    // expand the key
-	const int wordSize = sizeof(::std::uint32_t);
-    const int number_of_words_in_key = static_cast<int>(len) / sizeof(::std::uint32_t);
-    const int number_of_rounds = number_of_words_in_key + 6;
-    const int block_size = 4;
-	const int expanded_key_words = block_size * (number_of_rounds + 1);
-    const int key_temp_size = expanded_key_words * wordSize;
-
-	
-
-	crypto_vector keyTemp(key_temp_size);
-	::std::copy(key, key + len, keyTemp.begin());
-	crypto_vector::iterator temp_iter = keyTemp.begin() + ((number_of_words_in_key - 1) * wordSize);
-	::std::array<::std::uint8_t, wordSize> temp;
-	::std::copy(temp_iter, temp_iter + wordSize, temp.begin());
-
-	for (int i = number_of_words_in_key; i < expanded_key_words; ++i)
-	{
-		temp_iter += wordSize;
-		if ((i % number_of_words_in_key) == 0)
-		{
-			::std::rotate(temp.begin(), temp.begin() + 1, temp.end());
-			::std::transform(temp.cbegin(), temp.cend(), temp.begin(), sub_words);
-			temp[0] ^= rcon[(i / number_of_words_in_key) - 1];
-		}
-		else if (number_of_words_in_key > AES192_NUM_KEYWORDS && (i % number_of_words_in_key) == AES128_NUM_KEYWORDS)
-		{
-			::std::transform(temp.cbegin(), temp.cend(), temp.begin(), sub_words);
-		}
-
-		::std::transform(
-			temp.cbegin(),
-			temp.cend(),
-			temp_iter - (number_of_words_in_key * wordSize),
-			temp.begin(),
-			op_xor);
-		::std::copy(temp.cbegin(), temp.cend(), temp_iter);
-	}
-    
-    crypto_allocator<aes_key> alloc;
-    aes_key * ptr = alloc.allocate(1);
-	alloc.construct(ptr, keyTemp.data(), keyTemp.size());
-	::libcryptmg::core::explict_zero(temp);
-	std::fill(temp.begin(), temp.end(), 0);
-    return ptr;
+	return aes_encryptor(::std::move(keyTemp), number_of_rounds);
 }
 
 #ifdef TEST

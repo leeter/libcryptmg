@@ -78,15 +78,18 @@
     <ClInclude Include="cipher_block_chaining.hpp">
       <Filter>Header Files\block cipher running modes</Filter>
     </ClInclude>
+    <ClInclude Include="bitwise_opps.hpp">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="aes_ni.hpp">
+      <Filter>Header Files\aes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libCryptMG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="aes.cpp">
@@ -103,6 +106,9 @@
     </ClCompile>
     <ClCompile Include="crypto_vector.cpp">
       <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="aes_ni.cpp">
+      <Filter>Source Files\aes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
