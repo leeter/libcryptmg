@@ -21,13 +21,6 @@ namespace libcryptmg
 
 			template<class T>
 			struct bytes_per_block : ::std::integral_constant<::std::size_t, block_size<T>::value / sizeof(::std::uint8_t)>{};
-
-			template<class T>
-			struct block_cipher_traits
-			{
-
-			};
-
 		}
 	}
 }
